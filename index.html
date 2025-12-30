@@ -196,9 +196,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-12-29 21:19:13 / 修改时间：22:30:36" itemprop="dateCreated datePublished" datetime="2025-12-29T21:19:13+08:00">2025-12-29</time>
+      <time title="创建时间：2025-12-29 21:19:13" itemprop="dateCreated datePublished" datetime="2025-12-29T21:19:13+08:00">2025-12-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-12-30 15:25:31" itemprop="dateModified" datetime="2025-12-30T15:25:31+08:00">2025-12-30</time>
     </span>
 
   
@@ -211,7 +217,30 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>##信息收集<br>###web1<br>源码直接泄露了flag<br>###web2<br>源码泄露flag，但是把f12禁用了。<br>这里我用bp抓包直接抓到flag了<br>还有其他解法，比如用firefox内置的Developer Tools，点击浏览器右上角的“三条横线”菜单，选择“Web开发者” -&gt; “开发者工具”。<br>或者直接curl -O <a href="https://example.com/">https://example.com</a> 下载代码。<br>###web3<br>抓包，发现包里直接有flag<br>###web4<br>&#x2F;robots.txt里泄露了flag<br>###web5<br>.phps导致源码泄露<br>phps文件就是php的源代码文件，通常用于提供给用户（访问者）直接通过Web浏览器查看php代码的内容。<br>因为用户无法直接通过Web浏览器“看到”php文件的内容，所以需要用phps文件代替。<br>并不是所有的php文件都存在.phps后缀，不是默认带有，只会在特殊情况下存在<br>详情见百度<br>解：<br>利用目录扫描工具，扫描出靶场目录下有个index.php（一般可以猜出来），将index.php改为index.phps访问，自动下载了index.php的源码，打开获取flag</p>
+          <h1 id="信息收集类"><a href="#信息收集类" class="headerlink" title="信息收集类"></a>信息收集类</h1><h2 id="web1"><a href="#web1" class="headerlink" title="web1"></a>web1</h2><p><strong>描述</strong>：源码直接泄露flag<br><strong>解法</strong>：直接查看源码</p>
+<h2 id="web2"><a href="#web2" class="headerlink" title="web2"></a>web2</h2><p><strong>描述</strong>：源码泄露flag，但禁用F12<br><strong>解法</strong>：</p>
+<ol>
+<li>使用Burp Suite抓包直接获取flag</li>
+<li>其他方法：<ul>
+<li>Firefox：菜单 → Web开发者 → 开发者工具</li>
+<li>命令行：<code>curl -O https://example.com</code> 下载代码</li>
+</ul>
+</li>
+</ol>
+<h2 id="web3"><a href="#web3" class="headerlink" title="web3"></a>web3</h2><p><strong>描述</strong>：抓包获取flag<br><strong>解法</strong>：分析网络请求包</p>
+<h2 id="web4"><a href="#web4" class="headerlink" title="web4"></a>web4</h2><p><strong>描述</strong>：robots.txt泄露<br><strong>解法</strong>：访问 <code>/robots.txt</code> 获取flag</p>
+<h2 id="web5"><a href="#web5" class="headerlink" title="web5"></a>web5</h2><p><strong>描述</strong>：.phps源码泄露<br><strong>知识点</strong>：</p>
+<ul>
+<li>.phps是PHP源代码文件，用于在浏览器中直接显示源码</li>
+<li>不是默认存在，需特殊配置才有</li>
+<li>用户无法直接通过浏览器查看.php文件内容，故用.phps替代</li>
+</ul>
+<p><strong>解法</strong>：</p>
+<ol>
+<li>目录扫描发现<code>index.php</code></li>
+<li>尝试访问<code>index.phps</code>自动下载源码</li>
+<li>查看源码获取flag</li>
+</ol>
 
       
     </div>
