@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.26.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="信息收集类web6描述：源码泄露解法：dirsearch扫描目录发现www.zip，解压发现flag dirsearch常用参数常用的参数 -u 指定网址-e 指定网站语言-w 指定字典-r 递归目录（跑出目录后，继续跑目录下面的目录）–random-agents 使用随机UA web7描述：git源码泄露解法：dirsearch扫描目录发现git目录，访问直接获取flag web8描述：SVN泄">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ctfshow web day2">
+<meta property="og:url" content="http://example.com/2025/12/30/day2/index.html">
+<meta property="og:site_name" content="Kwan1&#39;s Blog">
+<meta property="og:description" content="信息收集类web6描述：源码泄露解法：dirsearch扫描目录发现www.zip，解压发现flag dirsearch常用参数常用的参数 -u 指定网址-e 指定网站语言-w 指定字典-r 递归目录（跑出目录后，继续跑目录下面的目录）–random-agents 使用随机UA web7描述：git源码泄露解法：dirsearch扫描目录发现git目录，访问直接获取flag web8描述：SVN泄">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-30T09:11:33.583Z">
+<meta property="article:modified_time" content="2025-12-31T07:14:09.041Z">
+<meta property="article:author" content="Kwan1">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2025/12/30/day2/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/12/30/day2/","path":"2025/12/30/day2/","title":"ctfshow web day2"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ctfshow web day2 | Kwan1's Blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Kwan1's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">平生养韬光 壮志藏心间</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-links"><a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友情链接</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">信息收集类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#web6"><span class="nav-number">1.1.</span> <span class="nav-text">web6</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dirsearch%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.</span> <span class="nav-text">dirsearch常用参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web7"><span class="nav-number">1.3.</span> <span class="nav-text">web7</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web8"><span class="nav-number">1.4.</span> <span class="nav-text">web8</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web9"><span class="nav-number">1.5.</span> <span class="nav-text">web9</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web10"><span class="nav-number">1.6.</span> <span class="nav-text">web10</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web11"><span class="nav-number">1.7.</span> <span class="nav-text">web11</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web12"><span class="nav-number">1.8.</span> <span class="nav-text">web12</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web13"><span class="nav-number">1.9.</span> <span class="nav-text">web13</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web14"><span class="nav-number">1.10.</span> <span class="nav-text">web14</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web15"><span class="nav-number">1.11.</span> <span class="nav-text">web15</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web16"><span class="nav-number">1.12.</span> <span class="nav-text">web16</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web17"><span class="nav-number">1.13.</span> <span class="nav-text">web17</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web18"><span class="nav-number">1.14.</span> <span class="nav-text">web18</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web19"><span class="nav-number">1.15.</span> <span class="nav-text">web19</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web20"><span class="nav-number">1.16.</span> <span class="nav-text">web20</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Kwan1"
+      src="/images/image.png">
+  <p class="site-author-name" itemprop="name">Kwan1</p>
+  <div class="site-description" itemprop="description">无论云泥意贯一</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/12/30/day2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/image.png">
+      <meta itemprop="name" content="Kwan1">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kwan1's Blog">
+      <meta itemprop="description" content="无论云泥意贯一">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ctfshow web day2 | Kwan1's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ctfshow web day2
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-12-30 17:11:33" itemprop="dateCreated datePublished" datetime="2025-12-30T17:11:33+08:00">2025-12-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-12-31 15:14:09" itemprop="dateModified" datetime="2025-12-31T15:14:09+08:00">2025-12-31</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="信息收集类"><a href="#信息收集类" class="headerlink" title="信息收集类"></a>信息收集类</h1><h2 id="web6"><a href="#web6" class="headerlink" title="web6"></a>web6</h2><p><strong>描述</strong>：源码泄露<br><strong>解法</strong>：dirsearch扫描目录发现<a target="_blank" rel="noopener" href="http://www.zip,解压发现flag/">www.zip，解压发现flag</a></p>
+<h2 id="dirsearch常用参数"><a href="#dirsearch常用参数" class="headerlink" title="dirsearch常用参数"></a>dirsearch常用参数</h2><p>常用的参数</p>
+<p>-u 指定网址<br>-e 指定网站语言<br>-w 指定字典<br>-r 递归目录（跑出目录后，继续跑目录下面的目录）<br>–random-agents 使用随机UA</p>
+<h2 id="web7"><a href="#web7" class="headerlink" title="web7"></a>web7</h2><p><strong>描述</strong>：git源码泄露<br><strong>解法</strong>：dirsearch扫描目录发现git目录，访问直接获取flag</p>
+<h2 id="web8"><a href="#web8" class="headerlink" title="web8"></a>web8</h2><p><strong>描述</strong>：SVN泄露 SVN（subversion）是程序员常用的源代码版本管理软件。在使用 SVN 管理本地代码过程中，使用 svn checkout 功能来更新代码时，项目目录下会自动生成隐藏的.svn文件夹（Linux上用 ls 命令看不到，要用 ls -al 命令），其中包含重要的源代码信息。<br>造成SVN源代码漏洞的主要原因是管理员操作不规范，一些网站管理员在发布代码时，不愿意使用“导出”功能，而是直接复制代码文件夹到WEB服务器上，这就使得.svn隐藏文件夹被暴露于外网环境，黑客对此可进一步利用<br><strong>解法</strong>：dirsearch扫描目录发现.svn目录，访问直接获取flag即可。</p>
+<h2 id="web9"><a href="#web9" class="headerlink" title="web9"></a>web9</h2><p><strong>描述</strong>：vim缓存信息泄露  .swp文件泄露<br>根据提示，在Linux生产环境上使用vim或者vi做修改时，会生成一个swp为后缀的文件</p>
+<p>第一次意外退出生成的是.swp<br>第二次意外退出生成的是.swo<br>第三次为.swn<br><strong>解法</strong>：尝试打开第一次退出时产生的这个文件,输入url&#x2F;index.php.swp<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/a597934448/article/details/105431367">https://blog.csdn.net/a597934448/article/details/105431367</a></p>
+<h2 id="web10"><a href="#web10" class="headerlink" title="web10"></a>web10</h2><p><strong>描述</strong>：cookie泄露flag<br><strong>解法</strong>：抓包发现flag在cookie中</p>
+<h2 id="web11"><a href="#web11" class="headerlink" title="web11"></a>web11</h2><p><strong>描述</strong>：dns域名信息隐藏<br>题目提到，域名其实也可以隐藏信息，比如flag.ctfshow.com 就隐藏了一条信息<br><strong>解法</strong>：查找flag.ctfshow.com域名下的txt记录<br>查询所有DNS记录<br>nslookup -query&#x3D;any flag.ctfshow.com</p>
+<p>特别关注TXT记录（可能包含flag）<br>nslookup -query&#x3D;txt flag.ctfshow.com</p>
+<p>查询特定子域名<br>nslookup -query&#x3D;any secret.ctfshow.com</p>
+<p>使用dig获取更详细信息<br>dig any flag.ctfshow.com +noall +answer</p>
+<h2 id="web12"><a href="#web12" class="headerlink" title="web12"></a>web12</h2><p><strong>描述</strong> 管理员账号密码泄露<br><strong>解法</strong> diresearch扫描发现目录有robots.txt，里面有admin。还发现有管理员登录界面。<br>发现网页里有一个Help Line Number : 372619038，尝试将其当做密码，发现能成功登陆。获取flag</p>
+<h2 id="web13"><a href="#web13" class="headerlink" title="web13"></a>web13</h2><p><strong>描述</strong> 技术文档泄露<br><strong>解法</strong> 页面中发现有一个document可以下载，发现是技术文档，包含了后台网址和账号密码（&#x2F;system1103&#x2F;login.php）</p>
+<h2 id="web14"><a href="#web14" class="headerlink" title="web14"></a>web14</h2><p><strong>描述</strong> editor目录遍历漏洞<br>小0day:某编辑器最新版默认配置下，如果目录不存在，则会遍历服务器根目录<br><strong>解法</strong> 扫描发现editor组件，进入发现有图片上传，用本地上传发现可以看到服务器的根目录的内容，在&#x2F;var&#x2F;www&#x2F;html&#x2F;里发现了flag文件。</p>
+<h2 id="web15"><a href="#web15" class="headerlink" title="web15"></a>web15</h2><p><strong>描述</strong> 邮箱泄露<br><strong>解法</strong> 扫描发现admin登陆界面，有忘记密码功能，密保问题是所在城市。主页面发现了一个qq，搜索发现现居陕西西安。登陆获取flag</p>
+<h2 id="web16"><a href="#web16" class="headerlink" title="web16"></a>web16</h2><p><strong>描述</strong> php探针泄露<br><strong>解法</strong> 考察PHP探针php探针是用来探测空间、服务器运行状况和PHP信息用的，探针可以实时查看服务器硬盘资源、内存占用、网卡 流量、系统负载、服务器时间等信息。 url后缀名添加&#x2F;tz.php 版本是雅黑PHP探针，然后查看phpinfo搜索flag<br>&#x2F;tz.php?act&#x3D;phpinfo</p>
+<h2 id="web17"><a href="#web17" class="headerlink" title="web17"></a>web17</h2><p><strong>描述</strong> 数据库备份泄露<br><strong>解法</strong> 扫描发现存在backup.sql，进入发现为sql备份文件泄露</p>
+<h2 id="web18"><a href="#web18" class="headerlink" title="web18"></a>web18</h2><p><strong>描述</strong> js信息隐藏<br><strong>解法</strong> 是一个game，要求获得一定分数。查看js文件发现</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(score&gt;<span class="number">100</span>)</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">var</span> result=<span class="variable language_">window</span>.<span class="title function_">confirm</span>(<span class="string">&quot;\u4f60\u8d62\u4e86\uff0c\u53bb\u5e7a\u5e7a\u96f6\u70b9\u76ae\u7231\u5403\u76ae\u770b\u770b&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">var</span> result=<span class="variable language_">window</span>.<span class="title function_">confirm</span>(<span class="string">&quot;GAMEOVER\n是否从新开始&quot;</span>);</span><br><span class="line"><span class="keyword">if</span>(result)&#123;</span><br><span class="line">location.<span class="title function_">reload</span>();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>解码发现是110.php 访问直接获取flag</p>
+<h2 id="web19"><a href="#web19" class="headerlink" title="web19"></a>web19</h2><p><strong>描述</strong> js源码泄露<br><strong>解法</strong> </p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">checkForm</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">var</span> key = <span class="string">&quot;0000000372619038&quot;</span>;</span><br><span class="line">        <span class="keyword">var</span> iv = <span class="string">&quot;ilove36dverymuch&quot;</span>;</span><br><span class="line">        <span class="keyword">var</span> pazzword = $(<span class="string">&quot;#pazzword&quot;</span>).<span class="title function_">val</span>();</span><br><span class="line">        pazzword = <span class="title function_">encrypt</span>(pazzword,key,iv);</span><br><span class="line">        $(<span class="string">&quot;#pazzword&quot;</span>).<span class="title function_">val</span>(pazzword);</span><br><span class="line">        $(<span class="string">&quot;#loginForm&quot;</span>).<span class="title function_">submit</span>();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">encrypt</span>(<span class="params">data,key,iv</span>) &#123; <span class="comment">//key,iv：16位的字符串</span></span><br><span class="line">        <span class="keyword">var</span> key1  = <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Latin1</span>.<span class="title function_">parse</span>(key);</span><br><span class="line">        <span class="keyword">var</span> iv1   = <span class="title class_">CryptoJS</span>.<span class="property">enc</span>.<span class="property">Latin1</span>.<span class="title function_">parse</span>(iv);</span><br><span class="line">        <span class="keyword">return</span> <span class="title class_">CryptoJS</span>.<span class="property">AES</span>.<span class="title function_">encrypt</span>(data, key1,&#123;</span><br><span class="line">            iv : iv1,</span><br><span class="line">            mode : <span class="title class_">CryptoJS</span>.<span class="property">mode</span>.<span class="property">CBC</span>,</span><br><span class="line">            padding : <span class="title class_">CryptoJS</span>.<span class="property">pad</span>.<span class="property">ZeroPadding</span></span><br><span class="line">        &#125;).<span class="title function_">toString</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&lt;/script&gt;</span><br><span class="line">    &lt;!--</span><br><span class="line">    <span class="title function_">error_reporting</span>(<span class="number">0</span>);</span><br><span class="line">    $flag=<span class="string">&quot;fakeflag&quot;</span></span><br><span class="line">    $u = $_POST[<span class="string">&#x27;username&#x27;</span>];</span><br><span class="line">    $p = $_POST[<span class="string">&#x27;pazzword&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span>(<span class="title function_">isset</span>($u) &amp;&amp; <span class="title function_">isset</span>($p))&#123;</span><br><span class="line">        <span class="keyword">if</span>($u===<span class="string">&#x27;admin&#x27;</span> &amp;&amp; $p ===<span class="string">&#x27;a599ac85a73384ee3219fa684296eaa62667238d608efa81837030bd1ce1bf04&#x27;</span>)&#123;</span><br><span class="line">            echo $flag;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>发现是aes加密，直接解密出密码登录就行了。</p>
+<h2 id="web20"><a href="#web20" class="headerlink" title="web20"></a>web20</h2><p><strong>描述</strong> mdb文件泄露<br><strong>解法</strong> mdb文件是早期asp+access构架的数据库文件，文件泄露相当于数据库被脱裤了；<br>dirsearch扫描一下发现有&#x2F;db目录，虽然访问权限沐足。题目提示我们是asp+access，尝试访问&#x2F;db&#x2F;db.mdb 打开即为flag</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/12/29/ctfshow%20web/" rel="prev" title="ctfshow web day1">
+                  <i class="fa fa-angle-left"></i> ctfshow web day1
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Kwan1</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
