@@ -141,7 +141,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,6 +159,123 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/01/28/%E5%B7%A5%E6%8E%A7%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90-Modbus/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/image.png">
+      <meta itemprop="name" content="Kwan1">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kwan1's Blog">
+      <meta itemprop="description" content="无论云泥意贯一">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Kwan1's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/01/28/%E5%B7%A5%E6%8E%A7%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90-Modbus/" class="post-title-link" itemprop="url">工控流量分析-Modbus</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-01-28 18:26:19 / 修改时间：19:22:36" itemprop="dateCreated datePublished" datetime="2026-01-28T18:26:19+08:00">2026-01-28</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>做流量分析做到一道Modbus流量分析的题，第一次见遂记录。</p>
+<p>流程核心：主站发起、从站响应</p>
+<hr>
+<ol>
+<li>主站发起请求</li>
+</ol>
+<p>SCADA&#x2F;PLC（主站）生成 Modbus&#x2F;TCP 包：</p>
+<ul>
+<li><p>Transaction ID</p>
+</li>
+<li><p>Unit ID</p>
+</li>
+<li><p>Function Code</p>
+</li>
+<li><p>目标地址</p>
+</li>
+<li><p>数据值</p>
+</li>
+</ul>
+<hr>
+<ol start="2">
+<li>从站接收并执行</li>
+</ol>
+<p>执行器（从站）收到包后，先检查 Unit ID 是否匹配自己的 Node ID，如果匹配就执行指令：</p>
+<ul>
+<li><p>解析 Function Code，例如写单个线圈</p>
+</li>
+<li><p>定位至线圈并设置数据值</p>
+</li>
+</ul>
+<p>从站返回响应：阀门执行器生成响应包，带上和请求包相同的 Transaction ID，返回：</p>
+<ul>
+<li><p>Function Code</p>
+</li>
+<li><p>线圈地址</p>
+</li>
+<li><p>数据值</p>
+</li>
+</ul>
+<hr>
+<ol start="3">
+<li>主站接收响应</li>
+</ol>
+<p>SCADA&#x2F;PLC 收到响应包后，通过 Transaction ID 匹配到之前的请求，确认动作已执行，并在 HMI 上更新状态。</p>
+<p>常见的功能码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1：读线圈</span><br><span class="line">2：读离散输入</span><br><span class="line">3：读保持</span><br><span class="line">4：读输入</span><br><span class="line">5：写单个线圈</span><br><span class="line">6：写单个保持</span><br><span class="line">15：写多个线圈</span><br><span class="line">16：写多个保持</span><br></pre></td></tr></table></figure>
+<p>此外，注意：<br>写线圈后，Data为0xff00说明置1，可以理解成“打开”的意思<br>为0x0000即说明置0，对应“关闭”<br>Reference Number为线圈寄存器地址<br>NodeId为工业网络里标识设备的 “地址”</p>
+<p>题中也出现了SNMPv2协议，也和工控流量相关：<br>SNMPv2 是简单网络管理协议（SNMP）的一个常用版本，用于网络设备（路由器、交换机等）的监控与管理，延续了SNMP主从式（管理站与代理）的通信模式，管理站可通过Get、GetNext等操作查询设备参数，也可通过Set操作配置设备，代理则部署在被管理设备上，接收指令并返回响应，SNMPv2支持批量查询，能更高效地获取多个设备参数，其认证方式仍采用共同体名（Community String），分为只读（public，仅查询数据）和读写（private，可配置设备）两种，同时依赖MIB（管理信息库）定义可监控参数及对应OID（对象标识符），相较于SNMPv1提升了查询效率和错误处理能力，但未添加加密和更严格的身份验证机制，安全性较弱，常应用于对安全要求不高的内部网络环境。<br>MIB（Management Information Base，管理信息库）是MO（Managed Object管理对象）定义的集合。MIB文件是按照ASN.1定义的文本文件。每个管理对象都对应一个节点，并且用OID(Object Identifier)来标识；数据管理对象对应叶子节点；所有的管理对象形成了一棵管理树。对象标识从顶部开始，顶部没有标识，以root表示。所有的MIB变量都从1.3.6.1.2.1这个标识开始。树上的每个节点还有文字名，例如：1.3.6.1.2.1就和iso.org.dod.internet.memt.mib对应。<br>例如：<br>0000   00 2f 14 27 16 3a 00 45 3a 2c 5b 62 08 00 45 00   .&#x2F;.’.:.E:,[b..E.<br>0010   00 59 00 01 00 00 40 11 f6 46 c0 a8 01 98 c0 a8   .Y....@..F……<br>0020   01 64 d0 9c 00 a1 00 45 c8 a2 53 4e 4d 50 76 32   .d…..E..SNMPv2<br>0030   63 3b 43 6f 6d 6d 75 6e 69 74 79 3d 70 75 62 6c   c;Community&#x3D;publ<br>0040   69 63 3b 50 44 55 3d 47 65 74 52 65 71 75 65 73   ic;PDU&#x3D;GetReques<br>0050   74 3b 4f 49 44 3d 31 2e 33 2e 36 2e 31 2e 34 2e   t;OID&#x3D;1.3.6.1.4.<br>0060   31 2e 36 33 36 2e 31                              1.636.1<br>Community&#x3D;public：public，代表是只读权限的请求，只能查询设备数据，不能修改配置。<br>PDU&#x3D;GetRequest：表示这是一个GetRequest类型的协议数据单元（PDU），也就是管理站向设备代理发起的查询请求。<br>OID：指定了要查询的对象标识符（OID）<br>这个包是 IP 为 192.168.1.152 的管理站，向 IP 为 192.168.1.100 的网络设备，发送了一个 SNMPv2c 只读查询请求，目标是获取 OID 1.3.6.1.4.1.636.1 对应的设备私有 MIB 信息（通常是厂商自定义的设备参数）。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -204,7 +321,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-01-01 19:53:47" itemprop="dateModified" datetime="2026-01-01T19:53:47+08:00">2026-01-01</time>
+      <time title="修改时间：2026-01-01 20:29:22" itemprop="dateModified" datetime="2026-01-01T20:29:22+08:00">2026-01-01</time>
     </span>
 
   
